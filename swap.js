@@ -74,7 +74,7 @@ const swap = async () => {
     const unit1 = await new BigNumber(amounts[1]).shiftedBy(-toTokenDecimals[0]);
     const amount1 = await new BigNumber(amounts[1]);
     console.log(`
-        Swaping token at PancakeSwap DEX
+        Swaping token at DEX
         =================
         tokenIn: ${unit0.toString()} ${fromTokens[0]}
         tokenOut: ${unit1.toString()} ${toTokens[0]}
@@ -86,7 +86,7 @@ const swap = async () => {
         amount0,
         0,
     );
-    
+
     /* const [gasPrice, gasCost] = await Promise.all([
         web3.eth.getGasPrice(),
         tx.estimateGas({from: admin}),
