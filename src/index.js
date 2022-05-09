@@ -3,7 +3,7 @@ const Web3 = require('web3');
 const BigNumber = require('bignumber.js');
 const { performance } = require('perf_hooks');
 
-const Flashswap = require('./build/contracts/Flashswap.json');
+const Flashswap = require('../artifacts/contracts/Flashswap.sol/Flashswap.json');
 const BlockSubscriber = require('./block_subscriber');
 const TransactionSender = require('./transaction_send');
 
@@ -11,7 +11,7 @@ const fs = require('fs');
 const util = require('util');
 const request = require('async-request');
 
-exports.module = (flashAddress, pairs) => {
+module.exports = (flashAddress, pairs) => {
 
   var log_file = fs.createWriteStream(__dirname + '/log_arbitrage.txt', { flags: 'w' });
   var log_stdout = process.stdout;
@@ -41,29 +41,25 @@ exports.module = (flashAddress, pairs) => {
 
 
   const getPrices = async () => {
-      const response = await request('https://api.coingecko.com/api/v3/simple/price?ids=binancecoin,ethereum,bitcoin,tether,usd-coin,busd&vs_currencies=usd');
+      const response = await request('https://api.coingecko.com/api/v3/simple/price?ids=fantom,usd-coin&vs_currencies=usd');
 
       const prices = {};
 
       try {
           const json = JSON.parse(response.body);
-          prices['0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c'.toLowerCase()] = json.binancecoin.usd;
-          prices['0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56'.toLowerCase()] = json.busd.usd;
-          prices['0x2170Ed0880ac9A755fd29B2688956BD959F933F8'.toLowerCase()] = json.ethereum.usd;
-          prices['0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c'.toLowerCase()] = json.bitcoin.usd;
-          prices['0x55d398326f99059ff775485246999027b3197955'.toLowerCase()] = json.tether.usd;
+          prices['0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83'.toLowerCase()] = json.fantom.usd;
+          prices['0x04068da6c83afcfa0e13ba15a6696662335d5b75'.toLowerCase()] = json['usd-coin'].usd;
           // prices['??'.toLowerCase()] = json['usd-coin'].usd;
       } catch (e) {
           console.error(e)
           return {};
       }
-
+      console.log(`Price FTM ${prices['0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83'.toLowerCase()]}`);
+      console.log(`Price USDC ${prices['0x04068da6c83afcfa0e13ba15a6696662335d5b75'.toLowerCase()]}`);
       return prices;
   }
 
   const init = async () => {
-      console.log('starting: ', JSON.stringify(pairs.map(p => p.name)));
-
       const transactionSender = TransactionSender.factory(process.env.WSS_BLOCKS.split(','));
 
       let nonce = await web3.eth.getTransactionCount(admin);
@@ -96,16 +92,15 @@ exports.module = (flashAddress, pairs) => {
           const start = performance.now();
           const calls = [];
 
-          // const flashswap = new web3.eth.Contract(
-          //     Flashswap.abi,
-          //     Flashswap.networks[process.env.NETWORKID].address
-          // );
-
           pairs.forEach((pair) => {
+              console.log(`starting: ${pair.name}`);
               calls.push(async () => {
                   // pair.tokenPayDecimal is a decimal for amoutTokenPay, you will need to change it based on currency
-                  const check = await flashswap.methods.check(pair.tokenPay, pair.tokenSwap, new BigNumber(pair.amountTokenPay * pair.tokenPayDecimal), pair.sourceRouter, pair.targetRouter).call();
-
+                  try {
+                    const check = await flashswap.methods.check(pair.tokenSwap, new BigNumber(pair.amountTokenPay * pair.tokenPayDecimal), pair.tokenPay, pair.sourceRouter, pair.targetRouter).call();
+                  } catch (e) {
+                    console.log(e);
+                  }
                   const profit = check[0];
 
                   let s = pair.tokenPay.toLowerCase();
@@ -200,7 +195,7 @@ exports.module = (flashAddress, pairs) => {
           try {
               await Promise.all(calls.map(fn => fn()));
           } catch (e) {
-              console.log('error', e)
+              console.log(e)
           }
 
           let number = performance.now() - start;
@@ -215,5 +210,5 @@ exports.module = (flashAddress, pairs) => {
 
       BlockSubscriber.subscribe(process.env.WSS_BLOCKS.split(','), onBlock);
   }
-
+  init()
 }

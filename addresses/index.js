@@ -1,6 +1,5 @@
 module.exports = {
   AVAX: {
-    pancake: require('./avax/pancake.json'),
     elk: require('./avax/elk.json'),
     joe: require('./avax/joe.json'),
     pangolin: require('./avax/pangolin.json'),
