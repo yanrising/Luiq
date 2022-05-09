@@ -7,7 +7,7 @@ module.exports = (dexes) => {
   // for (let dex in dexes) {
   //   const pair = {
   //     name: 'BNB to BUSD, bakery>pancake',
-  //     amountTokenPay: process.env.BNB_AMOUNT,
+  //     amountTokenPay: process.env.SPENDNING_AMOUNT,
   //     tokenPay: BNB_MAINNET,
   //     tokenSwap: BUSD_MAINNET,
   //     sourceRouter: addresses.bakery.router,
@@ -25,7 +25,7 @@ module.exports = (dexes) => {
   return [
     {
       name: 'FTM to USDC, dfyn>kyber',
-      amountTokenPay: process.env.BNB_AMOUNT,
+      amountTokenPay: process.env.SPENDNING_AMOUNT,
       tokenPay: NATIVE_TOKEN,
       tokenPayDecimal: 1e18,
       tokenSwap: STABLE_TOKEN,
@@ -35,7 +35,7 @@ module.exports = (dexes) => {
     },
     {
       name: 'FTM to USDC, kyber>sushi',
-      amountTokenPay: process.env.BNB_AMOUNT,
+      amountTokenPay: process.env.SPENDNING_AMOUNT,
       tokenPay: NATIVE_TOKEN,
       tokenPayDecimal: 1e18,
       tokenSwap: STABLE_TOKEN,
@@ -45,7 +45,7 @@ module.exports = (dexes) => {
     },
     {
       name: 'FTM to USDC, sushi>empire',
-      amountTokenPay: process.env.BNB_AMOUNT,
+      amountTokenPay: process.env.SPENDNING_AMOUNT,
       tokenPay: NATIVE_TOKEN,
       tokenPayDecimal: 1e18,
       tokenSwap: STABLE_TOKEN,
@@ -55,7 +55,7 @@ module.exports = (dexes) => {
     },
     {
       name: 'FTM to USDC, empire>elk',
-      amountTokenPay: process.env.BNB_AMOUNT,
+      amountTokenPay: process.env.SPENDNING_AMOUNT,
       tokenPay: NATIVE_TOKEN,
       tokenPayDecimal: 1e18,
       tokenSwap: STABLE_TOKEN,
@@ -65,7 +65,7 @@ module.exports = (dexes) => {
     },
     {
       name: 'FTM to USDC, jet>kyber',
-      amountTokenPay: process.env.BNB_AMOUNT,
+      amountTokenPay: process.env.SPENDNING_AMOUNT,
       tokenPay: NATIVE_TOKEN,
       tokenPayDecimal: 1e18,
       tokenSwap: STABLE_TOKEN,
@@ -75,7 +75,7 @@ module.exports = (dexes) => {
     },
     {
       name: 'FTM to USDC, kyber>jet',
-      amountTokenPay: process.env.BNB_AMOUNT,
+      amountTokenPay: process.env.SPENDNING_AMOUNT,
       tokenPay: NATIVE_TOKEN,
       tokenPayDecimal: 1e18,
       tokenSwap: STABLE_TOKEN,

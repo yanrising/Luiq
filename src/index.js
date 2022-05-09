@@ -3,7 +3,7 @@ const Web3 = require('web3');
 const BigNumber = require('bignumber.js');
 const { performance } = require('perf_hooks');
 
-const Flashswap = require('../artifacts/contracts/Flashswap.sol/Flashswap.json');
+const Flashswap_ABI = require('../artifacts/contracts/Flashswap.sol/Flashswap.json');
 const BlockSubscriber = require('./block_subscriber');
 const TransactionSender = require('./transaction_send');
 
@@ -11,7 +11,7 @@ const fs = require('fs');
 const util = require('util');
 const request = require('async-request');
 
-module.exports = (flashAddress, pairs) => {
+module.exports = (FLASHSWAP_CONTRACT, pairs) => {
 
   var log_file = fs.createWriteStream(__dirname + '/log_arbitrage.txt', { flags: 'w' });
   var log_stdout = process.stdout;
@@ -19,6 +19,7 @@ module.exports = (flashAddress, pairs) => {
       log_file.write(util.format(d) + '\n');
       log_stdout.write(util.format(d) + '\n');
   };
+
 
   const web3 = new Web3(
       new Web3.providers.WebsocketProvider(process.env.WSS_BLOCKS, {
@@ -34,12 +35,6 @@ module.exports = (flashAddress, pairs) => {
   const { address: admin } = web3.eth.accounts.wallet.add(process.env.PRIVATE_KEY);
 
   const prices = {};
-  const flashswap = new web3.eth.Contract(
-      Flashswap.abi,
-      flashAddress
-  );
-
-
   const getPrices = async () => {
       const response = await request('https://api.coingecko.com/api/v3/simple/price?ids=fantom,usd-coin&vs_currencies=usd');
 
@@ -59,7 +54,11 @@ module.exports = (flashAddress, pairs) => {
       return prices;
   }
 
+  const flashswap = new web3.eth.Contract(Flashswap_ABI.abi, FLASHSWAP_CONTRACT);
+
   const init = async () => {
+      console.log('starting: ', JSON.stringify(pairs.map(p => p.name)));
+
       const transactionSender = TransactionSender.factory(process.env.WSS_BLOCKS.split(','));
 
       let nonce = await web3.eth.getTransactionCount(admin);
@@ -74,6 +73,7 @@ module.exports = (flashAddress, pairs) => {
       }, 1000 * 60 * 3);
 
       const owner = await flashswap.methods.owner().call();
+
       console.log(`started: wallet ${admin} - gasPrice ${gasPrice} - contract owner: ${owner}`);
 
       let handler = async () => {
@@ -85,29 +85,32 @@ module.exports = (flashAddress, pairs) => {
           }
       };
 
-      await handler(); // get prices from CoinGecko
+      await handler();
       setInterval(handler, 1000 * 60 * 5);
 
       const onBlock = async (block, web3, provider) => {
           const start = performance.now();
+
           const calls = [];
 
+          const flashswap = new web3.eth.Contract(Flashswap_ABI.abi, FLASHSWAP_CONTRACT);
+
           pairs.forEach((pair) => {
-              console.log(`starting: ${pair.name}`);
+            // console.log(pair);
               calls.push(async () => {
-                  // pair.tokenPayDecimal is a decimal for amoutTokenPay, you will need to change it based on currency
                   try {
                     const check = await flashswap.methods.check(pair.tokenSwap, new BigNumber(pair.amountTokenPay * pair.tokenPayDecimal), pair.tokenPay, pair.sourceRouter, pair.targetRouter).call();
-                  } catch (e) {
-                    console.log(e);
-                  }
-                  const profit = check[0];
 
-                  let s = pair.tokenPay.toLowerCase();
-                  const price = prices[s];
-                  if (!price) {
+                    const profit = check[0];
+
+                    let s = pair.tokenPay.toLowerCase();
+                    const price = prices[s];
+                    if (!price) {
                       console.log('invalid price', pair.tokenPay);
                       return;
+                    }
+                  } catch (e) {
+                    console.log(`Contract error: ${e}`);
                   }
 
                   const profitUsd = profit / pair.tokenPayDecimal * price;
@@ -117,11 +120,11 @@ module.exports = (flashAddress, pairs) => {
                   if (profit > 0) {
                       console.log(`[${block.number}] [${new Date().toLocaleString()}]: [${provider}] [${pair.name}] Arbitrage opportunity found! Expected profit: ${(profit / pair.tokenPayDecimal).toFixed(3)} $${profitUsd.toFixed(2)} - ${percentage.toFixed(2)}%`);
 
-                      const tx = flashswap.methods.startArbitrage(
-                          block.number + process.env.BLOCKNUMBER,
-                          pair.tokenPay,
+                      const tx = flashswap.methods.start(
+                          block.number + 2,
                           pair.tokenSwap,
                           new BigNumber(pair.amountTokenPay * pair.tokenPayDecimal),
+                          pair.tokenPay,
                           pair.sourceRouter,
                           pair.targetRouter,
                           pair.sourceFactory,
@@ -129,7 +132,7 @@ module.exports = (flashAddress, pairs) => {
 
                       let estimateGas
                       try {
-                          estimateGas = await tx.estimateGas({ from: admin });
+                          estimateGas = await tx.estimateGas({from: admin});
                       } catch (e) {
                           console.log(`[${block.number}] [${new Date().toLocaleString()}]: [${pair.name}]`, 'gasCost error', e.message);
                           return;
@@ -138,7 +141,6 @@ module.exports = (flashAddress, pairs) => {
                       const myGasPrice = new BigNumber(gasPrice).plus(gasPrice * 0.2212).toString();
                       const txCostBNB = Web3.utils.toBN(estimateGas) * Web3.utils.toBN(myGasPrice);
 
-                      // calculate the estimated gas cost in USD
                       let gasCostUsd = (txCostBNB / pair.tokenPayDecimal) * prices[BNB_MAINNET.toLowerCase()];
                       const profitMinusFeeInUsd = profitUsd - gasCostUsd;
 
@@ -195,7 +197,7 @@ module.exports = (flashAddress, pairs) => {
           try {
               await Promise.all(calls.map(fn => fn()));
           } catch (e) {
-              console.log(e)
+              console.log('error', e)
           }
 
           let number = performance.now() - start;
@@ -210,5 +212,6 @@ module.exports = (flashAddress, pairs) => {
 
       BlockSubscriber.subscribe(process.env.WSS_BLOCKS.split(','), onBlock);
   }
-  init()
+
+  init();
 }
