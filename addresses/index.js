@@ -1,18 +1,39 @@
-const pancakeMainnet = require('./pancake-mainnet.json');
-const pancakeTestnet = require('./pancake-testnet.json');
-const pantherMainnet = require('./panther-mainnet.json');
-const bakeryMainnet = require('./bakery-mainnet.json');
-const apeMainnet = require('./ape-mainnet.json');
-
 module.exports = {
-    mainnet: {
-        pancake: pancakeMainnet,
-        panther: pantherMainnet,
-        bakery: bakeryMainnet,
-        ape: apeMainnet,
-    },
-    testnet: {
-        pancake: pancakeTestnet,
-    },
+  AVAX: {
+    elk: require('./avax/elk.json'),
+    joe: require('./avax/joe.json'),
+    pangolin: require('./avax/pangolin.json'),
+    sushi: require('./avax/sushi.json'),
+    unifi: require('./avax/unifi.json'),
+  },
+  BSC: {
+    ape: require('./bsc/ape.json'),
+    bakery: require('./bsc/bakery.json'),
+    elk: require('./bsc/elk.json'),
+    empire: require('./bsc/empire.json'),
+    jet: require('./bsc/jet.json'),
+    kyber: require('./bsc/kyber.json'),
+    pancake: require('./bsc/pancake.json'),
+    panther: require('./bsc/panther.json'),
+    sushi: require('./bsc/sushi.json'),
+    unifi: require('./bsc/unifi.json'),
+  },
+  FANTOM: {
+    dfyn: require('./fantom/dfyn.json'),
+    elk: require('./fantom/elk.json'),
+    empire: require('./fantom/empire.json'),
+    hyper: require('./fantom/hyper.json'),
+    jet: require('./fantom/jet.json'),
+    kyber: require('./fantom/kyber.json'),
+    sushi: require('./fantom/sushi.json'),
+  },
+  POLYGON: {
+    dfyn: require('./polygon/dfyn.json'),
+    elk: require('./polygon/elk.json'),
+    empire: require('./polygon/empire.json'),
+    jet: require('./polygon/jet.json'),
+    kyber: require('./polygon/kyber.json'),
+    sushi: require('./polygon/sushi.json'),
+    unifi: require('./polygon/unifi.json'),
+  },
 };
-
