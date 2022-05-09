@@ -32,4 +32,4 @@ Recently the Repo is prepared for Fantom Network. You can find the addresses in 
 yarn deploy:fantom
 ```
 
-Copy and paste the Smart Contract Address into the `./scripts/trade.js` first paramter if the function. 
+Copy and paste the Smart Contract Address into the `./scripts/trade.js` first paramter of the function. 
