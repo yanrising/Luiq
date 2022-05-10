@@ -2,10 +2,10 @@
 
 pragma solidity 0.8.0;
 
-import './IUniswapV2Router.sol';
-import './IUniswapV2Pair.sol';
-import './IUniswapV2Factory.sol';
-import './IERC20.sol';
+import './interfaces/IUniswapV2Router.sol';
+import './interfaces/IUniswapV2Pair.sol';
+import './interfaces/IUniswapV2Factory.sol';
+import './interfaces/IERC20.sol';
 
 // @author Daniel Espendiller - https://github.com/Haehnchen/uniswap-arbitrage-flash-swap - espend.de
 //
